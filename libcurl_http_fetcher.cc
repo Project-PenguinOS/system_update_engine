@@ -16,9 +16,7 @@
 
 #include "update_engine/libcurl_http_fetcher.h"
 
-#include <netinet/in.h>
 #include <resolv.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -28,7 +26,6 @@
 #include <base/format_macros.h>
 #include <base/location.h>
 #include <base/logging.h>
-#include <base/strings/string_split.h>
 #include <android-base/stringprintf.h>
 #include <base/threading/thread_task_runner_handle.h>
 
@@ -594,7 +591,7 @@ size_t LibcurlHttpFetcher::LibcurlWrite(void* ptr, size_t size, size_t nmemb) {
                                CURLINFO_CONTENT_LENGTH_DOWNLOAD,
                                &transfer_size_double),
              CURLE_OK);
-    off_t new_transfer_size = static_cast<off_t>(transfer_size_double);
+    off64_t new_transfer_size = static_cast<off64_t>(transfer_size_double);
     if (new_transfer_size > 0) {
       transfer_size_ = resume_offset_ + new_transfer_size;
     }

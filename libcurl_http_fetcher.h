@@ -87,7 +87,7 @@ class LibcurlHttpFetcher : public HttpFetcher {
   // Cleans up all internal state. Does not notify delegate
   ~LibcurlHttpFetcher() override;
 
-  void SetOffset(off_t offset) override { bytes_downloaded_ = offset; }
+  void SetOffset(off64_t offset) override { bytes_downloaded_ = offset; }
 
   void SetLength(size_t length) override { download_length_ = length; }
   void UnsetLength() override { SetLength(0); }
@@ -270,10 +270,10 @@ class LibcurlHttpFetcher : public HttpFetcher {
   bool restart_transfer_on_unpause_{false};
 
   // The transfer size. -1 if not known.
-  off_t transfer_size_{0};
+  off64_t transfer_size_{0};
 
   // How many bytes have been downloaded and sent to the delegate.
-  off_t bytes_downloaded_{0};
+  off64_t bytes_downloaded_{0};
 
   // The remaining maximum number of bytes to download. Zero represents an
   // unspecified length.
@@ -283,7 +283,7 @@ class LibcurlHttpFetcher : public HttpFetcher {
   // new connection.  0 otherwise.
   // In this class, resume refers to resuming a dropped HTTP connection,
   // not to resuming an interrupted download.
-  off_t resume_offset_{0};
+  off64_t resume_offset_{0};
 
   // Number of resumes performed so far and the max allowed.
   int retry_count_{0};
