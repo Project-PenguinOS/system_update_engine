@@ -17,9 +17,6 @@
 #ifndef UPDATE_ENGINE_PAYLOAD_CONSUMER_INSTALL_PLAN_H_
 #define UPDATE_ENGINE_PAYLOAD_CONSUMER_INSTALL_PLAN_H_
 
-#include <string>
-#include <vector>
-
 #include <android-base/macros.h>
 #include <brillo/secure_blob.h>
 
@@ -52,8 +49,8 @@ struct InstallPlan {
   // |source_slot| and |target_slot| if available. Returns whether it succeeded
   // to load all the partitions for the valid slots.
   bool LoadPartitionsFromSlots(BootControlInterface* boot_control);
-  template <typename PartitinoUpdateArray>
-  static bool ParseManifestToInstallPlan(const PartitinoUpdateArray& partitions,
+  template <typename PartitionUpdateArray>
+  static bool ParseManifestToInstallPlan(const PartitionUpdateArray& partitions,
                                          BootControlInterface* boot_control,
                                          size_t block_size,
                                          InstallPlan* install_plan,
