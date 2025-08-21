@@ -418,7 +418,7 @@ std::string GetExclusionName(const std::string& str_to_convert);
 ErrorCode IsTimestampNewer(const std::string_view old_version,
                            const std::string_view new_version);
 
-std::unique_ptr<android::base::MappedFile> GetReadonlyZeroBlock(size_t size);
+std::optional<android::base::MappedFile> GetReadonlyZeroBlock(size_t size);
 
 std::string_view GetReadonlyZeroString(size_t size);
 
