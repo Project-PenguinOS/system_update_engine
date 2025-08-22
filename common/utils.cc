@@ -1238,9 +1238,10 @@ ErrorCode IsTimestampNewer(const std::string_view old_version,
   return ErrorCode::kSuccess;
 }
 
-std::unique_ptr<android::base::MappedFile> GetReadonlyZeroBlock(size_t size) {
+std::optional<android::base::MappedFile> GetReadonlyZeroBlock(size_t size) {
   android::base::unique_fd fd{HANDLE_EINTR(open("/dev/zero", O_RDONLY))};
-  return android::base::MappedFile::FromFd(fd, 0, size, PROT_READ);
+  return android::base::MappedFile::Create(
+      android::base::borrowed_fd(fd), 0, size, PROT_READ);
 }
 
 std::string_view GetReadonlyZeroString(size_t size) {
