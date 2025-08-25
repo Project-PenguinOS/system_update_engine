@@ -1505,7 +1505,7 @@ bool DynamicPartitionControlAndroid::IsDynamicPartition(
 
 bool DynamicPartitionControlAndroid::UpdateUsesSnapshotCompression() {
   return GetVirtualAbFeatureFlag().IsEnabled() &&
-         GetSnapshotManager()->UpdateUsesCompression();
+         GetSnapshotManager()->UpdateUsesSnapuserd();
 }
 
 FeatureFlag
