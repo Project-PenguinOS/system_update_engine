@@ -271,7 +271,6 @@ bool UpdateAttempterAndroid::ApplyPayload(
   install_plan_ = InstallPlan();
 
   install_plan_.download_url = payload_url;
-  install_plan_.version = "";
   base_offset_ = payload_offset;
   InstallPlan::Payload payload;
   payload.size = payload_size;
@@ -293,9 +292,6 @@ bool UpdateAttempterAndroid::ApplyPayload(
   // The |payload.type| is not used anymore since minor_version 3.
   payload.type = InstallPayloadType::kUnknown;
   install_plan_.payloads.push_back(payload);
-
-  // The |public_key_rsa| key would override the public key stored on disk.
-  install_plan_.public_key_rsa = "";
 
   install_plan_.hash_checks_mandatory = hardware_->IsOfficialBuild();
   install_plan_.is_resume = !payload_id.empty() &&
