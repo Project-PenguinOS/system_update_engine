@@ -536,13 +536,11 @@ bool UpdateAttempterAndroid::ResetStatus(Error* error) {
                                  "Failed to reset the status because "
                                  "ClearUpdateCompletedMarker() failed");
   }
-  if (status_ == UpdateStatus::UPDATED_NEED_REBOOT) {
-    if (!resetShouldSwitchSlotOnReboot(error)) {
-      LOG(INFO) << "Failed to reset slot switch.";
-      return false;
-    }
-    LOG(INFO) << "Slot switch reset successful";
+  if (!resetShouldSwitchSlotOnReboot(error)) {
+    LOG(INFO) << "Failed to reset slot switch.";
+    return false;
   }
+  LOG(INFO) << "Slot switch reset successful";
   if (!boot_control_->GetDynamicPartitionControl()->ResetUpdate(prefs_)) {
     LOG(WARNING) << "Failed to reset snapshots. UpdateStatus is IDLE but"
                  << "space might not be freed.";
@@ -1552,7 +1550,7 @@ bool UpdateAttempterAndroid::TriggerPostinstall(const std::string& partition,
   InstallPlan install_plan;
   install_plan.source_slot = GetCurrentSlot();
   install_plan.target_slot = GetTargetSlot();
-  install_plan.switch_slot_on_reboot = false;
+  install_plan.switch_slot_on_reboot = install_plan_.switch_slot_on_reboot;
   install_plan.run_post_install = true;
   install_plan.download_url =
       std::string(kPrefsManifestBytes) + ":" + install_plan_.download_url;
