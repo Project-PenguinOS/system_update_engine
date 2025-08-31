@@ -90,7 +90,6 @@ string InstallPlan::ToString() const {
   result_str.emplace_back(VectorToString(
       {
           {"type", (is_resume ? "resume" : "new_update")},
-          {"version", version},
           {"source_slot", BootControlInterface::SlotName(source_slot)},
           {"target_slot", BootControlInterface::SlotName(target_slot)},
           {"initial url", url_str},

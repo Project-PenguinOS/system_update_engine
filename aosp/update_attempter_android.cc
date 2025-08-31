@@ -271,7 +271,6 @@ bool UpdateAttempterAndroid::ApplyPayload(
   install_plan_ = InstallPlan();
 
   install_plan_.download_url = payload_url;
-  install_plan_.version = "";
   base_offset_ = payload_offset;
   InstallPlan::Payload payload;
   payload.size = payload_size;
@@ -293,9 +292,6 @@ bool UpdateAttempterAndroid::ApplyPayload(
   // The |payload.type| is not used anymore since minor_version 3.
   payload.type = InstallPayloadType::kUnknown;
   install_plan_.payloads.push_back(payload);
-
-  // The |public_key_rsa| key would override the public key stored on disk.
-  install_plan_.public_key_rsa = "";
 
   install_plan_.hash_checks_mandatory = hardware_->IsOfficialBuild();
   install_plan_.is_resume = !payload_id.empty() &&
@@ -536,13 +532,11 @@ bool UpdateAttempterAndroid::ResetStatus(Error* error) {
                                  "Failed to reset the status because "
                                  "ClearUpdateCompletedMarker() failed");
   }
-  if (status_ == UpdateStatus::UPDATED_NEED_REBOOT) {
-    if (!resetShouldSwitchSlotOnReboot(error)) {
-      LOG(INFO) << "Failed to reset slot switch.";
-      return false;
-    }
-    LOG(INFO) << "Slot switch reset successful";
+  if (!resetShouldSwitchSlotOnReboot(error)) {
+    LOG(INFO) << "Failed to reset slot switch.";
+    return false;
   }
+  LOG(INFO) << "Slot switch reset successful";
   if (!boot_control_->GetDynamicPartitionControl()->ResetUpdate(prefs_)) {
     LOG(WARNING) << "Failed to reset snapshots. UpdateStatus is IDLE but"
                  << "space might not be freed.";
@@ -1552,7 +1546,7 @@ bool UpdateAttempterAndroid::TriggerPostinstall(const std::string& partition,
   InstallPlan install_plan;
   install_plan.source_slot = GetCurrentSlot();
   install_plan.target_slot = GetTargetSlot();
-  install_plan.switch_slot_on_reboot = false;
+  install_plan.switch_slot_on_reboot = install_plan_.switch_slot_on_reboot;
   install_plan.run_post_install = true;
   install_plan.download_url =
       std::string(kPrefsManifestBytes) + ":" + install_plan_.download_url;

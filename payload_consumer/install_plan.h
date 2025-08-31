@@ -73,7 +73,6 @@ struct InstallPlan {
   bool vabc_none{false};
   bool disable_vabc{false};
   std::string download_url;  // url to download from
-  std::string version;       // version we are installing.
 
   struct Payload {
     std::vector<std::string> payload_urls;  // URLs to download the payload
@@ -182,10 +181,6 @@ struct InstallPlan {
   // True if the update should write verity.
   // False otherwise.
   bool write_verity{true};
-
-  // If not blank, a base-64 encoded representation of the PEM-encoded
-  // public key in the response.
-  std::string public_key_rsa;
 
   // The name of dynamic partitions not included in the payload. Only used
   // for partial updates.

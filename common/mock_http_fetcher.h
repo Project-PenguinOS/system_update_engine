@@ -36,7 +36,7 @@ namespace chromeos_update_engine {
 // MockHttpFetcher will send a chunk of data down in each call to BeginTransfer
 // and Unpause. For the other chunks of data, a callback is put on the run
 // loop and when that's called, another chunk is sent down.
-static constexpr size_t kMockHttpFetcherChunkSize(65536);
+static constexpr uint64_t kMockHttpFetcherChunkSize(65536);
 
 class MockHttpFetcher : public HttpFetcher {
  public:
@@ -67,14 +67,14 @@ class MockHttpFetcher : public HttpFetcher {
   }
 
   // Do nothing.
-  void SetLength(size_t length) override {}
+  void SetLength(uint64_t length) override {}
   void UnsetLength() override {}
   void set_low_speed_limit(int low_speed_bps, int low_speed_sec) override {}
   void set_connect_timeout(int connect_timeout_seconds) override {}
   void set_max_retry_count(int max_retry_count) override {}
 
   // No bytes were downloaded in the mock class.
-  size_t GetBytesDownloaded() override { return bytes_sent_; }
+  uint64_t GetBytesDownloaded() override { return bytes_sent_; }
 
   // Begins the transfer if it hasn't already begun.
   void BeginTransfer(const std::string& url) override;
@@ -129,10 +129,10 @@ class MockHttpFetcher : public HttpFetcher {
   brillo::Blob data_;
 
   // The current offset, marks the first byte that will be sent next
-  size_t sent_offset_{0};
+  off64_t sent_offset_{0};
 
   // Total number of bytes transferred
-  size_t bytes_sent_{0};
+  uint64_t bytes_sent_{0};
 
   // The extra headers set.
   std::map<std::string, std::string> extra_headers_;

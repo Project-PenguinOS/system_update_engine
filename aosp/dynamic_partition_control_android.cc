@@ -356,6 +356,7 @@ void DynamicPartitionControlAndroid::Cleanup() {
   if (GetVirtualAbFeatureFlag().IsEnabled()) {
     // Release ISnapshotManager instance so GSID can be gracefully shutdown
     snapshot_ = nullptr;
+    LOG(INFO) << "SnapshotManager released";
   }
 }
 
@@ -939,9 +940,9 @@ DynamicPartitionControlAndroid::GetSnapshotManager() {
     } else {
       snapshot_ = SnapshotManagerStub::New();
     }
+    LOG(INFO) << "SnapshotManager initialized.";
   }
   CHECK(snapshot_ != nullptr) << "Cannot initialize SnapshotManager.";
-  LOG(INFO) << "SnapshotManager initialized.";
   return snapshot_.get();
 }
 
