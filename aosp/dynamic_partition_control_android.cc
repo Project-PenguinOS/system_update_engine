@@ -1425,7 +1425,7 @@ bool DynamicPartitionControlAndroid::EnsureMetadataMounted() {
 
 std::unique_ptr<android::snapshot::ICowWriter>
 DynamicPartitionControlAndroid::OpenCowWriter(
-    const std::string& partition_name,
+    const std::string& unsuffixed_partition_name,
     const std::optional<std::string>& source_path,
     std::optional<uint64_t> label) {
   auto suffix = SlotSuffixForSlotNumber(target_slot_);
@@ -1437,7 +1437,7 @@ DynamicPartitionControlAndroid::OpenCowWriter(
   CreateLogicalPartitionParams params = {
       .block_device = super_device->value(),
       .metadata_slot = target_slot_,
-      .partition_name = partition_name + suffix,
+      .partition_name = unsuffixed_partition_name + suffix,
       .force_writable = true,
       .timeout_ms = kMapSnapshotTimeout};
   // TODO(zhangkelvin) Open an APPEND mode CowWriter once there's an API to do
