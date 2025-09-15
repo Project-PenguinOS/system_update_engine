@@ -1247,6 +1247,13 @@ uint64_t UpdateAttempterAndroid::AllocateSpaceForPayload(
     Error* error) {
   LOG(INFO) << "AllocateSpaceForPayload(" << metadata_filename << ") "
             << android::base::Join(key_value_pair_headers, ", ");
+  if (processor_->IsRunning() && !CancelOptionalPostinstall()) {
+    return LogAndSetGenericError(
+        error,
+        __LINE__,
+        __FILE__,
+        "Already processing an update, cancel it first.");
+  }
   std::map<string, string> headers;
   if (!ParseKeyValuePairHeaders(key_value_pair_headers, &headers, error)) {
     return 0;
