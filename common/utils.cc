@@ -53,6 +53,7 @@
 #include <base/strings/string_number_conversions.h>
 #include <base/strings/string_split.h>
 #include <android-base/stringprintf.h>
+#include <android-base/unique_fd.h>
 #include <brillo/data_encoding.h>
 
 #include "update_engine/common/constants.h"
@@ -357,6 +358,15 @@ bool ReadFileChunk(const string& path,
                    off64_t size,
                    brillo::Blob* out_p) {
   return ReadFileChunkAndAppend(path, offset, size, out_p);
+}
+
+off64_t BlockDevSize(const char* path) {
+  android::base::unique_fd fd(open(path, O_RDONLY | O_CLOEXEC));
+  if (fd == -1) {
+    PLOG(ERROR) << "Error opening " << path;
+    return fd;
+  }
+  return BlockDevSize(fd);
 }
 
 off64_t BlockDevSize(int fd) {

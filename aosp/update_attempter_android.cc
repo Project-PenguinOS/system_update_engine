@@ -27,6 +27,7 @@
 #include <android-base/parsebool.h>
 #include <android-base/parseint.h>
 #include <android-base/properties.h>
+#include <android-base/strings.h>
 #include <android-base/unique_fd.h>
 #include <base/bind.h>
 #include <base/logging.h>
@@ -35,8 +36,8 @@
 #include <brillo/strings/string_utils.h>
 #include <log/log_safetynet.h>
 
-#include "android-base/strings.h"
 #include "update_engine/aosp/cleanup_previous_update_action.h"
+#include "update_engine/common/action.h"
 #include "update_engine/common/clock.h"
 #include "update_engine/common/constants.h"
 #include "update_engine/common/daemon_state_interface.h"
@@ -777,6 +778,12 @@ void UpdateAttempterAndroid::ProcessingDone(const ActionProcessor* processor,
 
 void UpdateAttempterAndroid::ProcessingStopped(
     const ActionProcessor* processor) {
+  auto action = processor->current_action();
+  if (IsOptionalPostinstall(action)) {
+    LOG(INFO)
+        << "Optional postinstall action cancelled internally by update-engine.";
+    return;
+  }
   TerminateUpdateAndNotify(ErrorCode::kUserCanceled);
 }
 
@@ -1350,33 +1357,41 @@ void UpdateAttempterAndroid::CleanupSuccessfulUpdate(
   ScheduleCleanupPreviousUpdate();
 }
 
+bool UpdateAttempterAndroid::IsOptionalPostinstall(AbstractAction* action) {
+  if (action == nullptr) {
+    return false;
+  }
+  if (action->Type() != PostinstallRunnerAction::StaticType()) {
+    return false;
+  }
+  auto postinstall_action = static_cast<PostinstallRunnerAction*>(action);
+  const InstallPlan& install_plan = postinstall_action->GetInputObject();
+  bool postinstall_succeeded = false;
+  if (!prefs_->GetBoolean(kPrefsPostInstallSucceeded, &postinstall_succeeded)) {
+    return false;
+  }
+  // Normal OTA updates contain more than 1 partition, if it only contains 1
+  // partition, and we have previously ran postinstall action.
+  // It's most likely triggered by `triggerPostinstall`, we can safely
+  // cancel it.
+  return install_plan.partitions.size() == 1 && install_plan.run_post_install &&
+         postinstall_succeeded;
+}
+
 bool UpdateAttempterAndroid::CancelOptionalPostinstall() {
   if (!processor_->IsRunning()) {
     return false;
   }
   auto current_action = processor_->current_action();
-  if (current_action->Type() != PostinstallRunnerAction::StaticType()) {
+  if (!IsOptionalPostinstall(current_action)) {
     return false;
   }
-  auto postinstall_action =
-      static_cast<PostinstallRunnerAction*>(current_action);
-  const InstallPlan& install_plan = postinstall_action->GetInputObject();
-  bool postinstall_succeeded = false;
-  prefs_->GetBoolean(kPrefsPostInstallSucceeded, &postinstall_succeeded);
-  // Normal OTA updates contain more than 1 partition, if it only contains 1
-  // partition, and we have previously ran postinstall action.
-  // It's most likely triggered by `triggerPostinstall`, we can safely
-  // cancel it.
-  if (install_plan.partitions.size() == 1 && install_plan.run_post_install &&
-      postinstall_succeeded) {
-    LOG(INFO)
-        << "Current running PostinstallAction is probably triggered by "
-           "TriggerPostinstall API. Since postinstall is optional, we will "
-           "cancel this action to service other API calls.";
-    processor_->StopProcessing();
-    return true;
-  }
-  return false;
+
+  LOG(INFO) << "Current running PostinstallAction is probably triggered by "
+               "TriggerPostinstall API. Since postinstall is optional, we will "
+               "cancel this action to service other API calls.";
+  processor_->StopProcessing();
+  return true;
 }
 
 bool UpdateAttempterAndroid::setShouldSwitchSlotOnReboot(
