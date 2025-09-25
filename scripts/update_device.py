@@ -222,8 +222,13 @@ class UpdateHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     self.end_headers()
 
     f.seek(serving_start + start_range)
-    CopyFileObjLength(f, self.wfile, copy_length=end_range -
+    try:
+      CopyFileObjLength(f, self.wfile, copy_length=end_range -
                       start_range, speed_limit=self.speed_limit)
+    except BrokenPipeError:
+      logging.info('Client closed connection')
+    finally:
+      f.close()
 
 
 class ServerThread(threading.Thread):
