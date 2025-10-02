@@ -376,6 +376,10 @@ message DynamicPartitionMetadata {
   // Max bytes to be compressed at once during ota. Options: 4k, 8k, 16k, 32k,
   // 64k, 128k
   optional uint64 compression_factor = 7;
+
+  // Whether to disable UBLK for OTA. This will force dm-user as OTA backend
+  // choice even if device was configured for UBLK based snapshots.
+  optional bool disable_ublk = 8;
 }
 
 // Definition has been duplicated from

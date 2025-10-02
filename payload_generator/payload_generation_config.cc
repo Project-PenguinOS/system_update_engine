@@ -238,6 +238,12 @@ bool ImageConfig::LoadDynamicPartitionMetadata(
                               (compression_factor_value - 1)),
              0);
     metadata->set_compression_factor(compression_factor_value);
+
+    bool disable_ublk = false;
+    if (store.GetBoolean("disable_ublk", &disable_ublk) && disable_ublk) {
+      LOG(INFO) << "Setting disable_ublk as requested";
+      metadata->set_disable_ublk(disable_ublk);
+    }
   }
   dynamic_partition_metadata = std::move(metadata);
   return true;
