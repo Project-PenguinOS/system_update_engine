@@ -220,9 +220,9 @@ bool InstallPlan::Partition::ParseVerityConfig(
   return true;
 }
 
-template <typename PartitinoUpdateArray>
+template <typename PartitionUpdateArray>
 bool InstallPlan::ParseManifestToInstallPlan(
-    const PartitinoUpdateArray& partitions,
+    const PartitionUpdateArray& partitions,
     BootControlInterface* boot_control,
     size_t block_size,
     InstallPlan* install_plan,

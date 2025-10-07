@@ -43,7 +43,7 @@ class FileFetcher : public HttpFetcher {
   ~FileFetcher() override;
 
   // HttpFetcher overrides.
-  void SetOffset(off_t offset) override { offset_ = offset; }
+  void SetOffset(off64_t offset) override { offset_ = offset; }
   void SetLength(size_t length) override { data_length_ = length; }
   void UnsetLength() override { SetLength(0); }
 
