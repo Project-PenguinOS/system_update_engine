@@ -67,7 +67,7 @@ class MultiRangeHttpFetcher : public HttpFetcher, public HttpFetcherDelegate {
   // HttpFetcher overrides.
   void SetOffset(off64_t offset) override;
 
-  void SetLength(size_t length) override {}  // unsupported
+  void SetLength(uint64_t length) override {}  // unsupported
   void UnsetLength() override {}
 
   // Begins the transfer to the specified URL.
@@ -106,7 +106,7 @@ class MultiRangeHttpFetcher : public HttpFetcher, public HttpFetcherDelegate {
     base_fetcher_->SetProxies(proxies);
   }
 
-  inline size_t GetBytesDownloaded() override {
+  inline uint64_t GetBytesDownloaded() override {
     return base_fetcher_->GetBytesDownloaded();
   }
 
