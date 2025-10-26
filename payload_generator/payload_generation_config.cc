@@ -18,6 +18,8 @@
 
 #include <algorithm>
 #include <charconv>
+#include <memory>
+#include <string>
 #include <utility>
 
 #include <android-base/parseint.h>
@@ -35,7 +37,6 @@
 #include "update_engine/payload_generator/ext2_filesystem.h"
 #include "update_engine/payload_generator/mapfile_filesystem.h"
 #include "update_engine/payload_generator/raw_filesystem.h"
-#include "update_engine/payload_generator/squashfs_filesystem.h"
 #include "update_engine/update_metadata.pb.h"
 
 using std::string;
@@ -101,13 +102,6 @@ bool PartitionConfig::OpenFilesystem() {
   }
 
   fs_interface = BootImgFilesystem::CreateFromFile(path);
-  if (fs_interface) {
-    TEST_AND_RETURN_FALSE(fs_interface->GetBlockSize() == kBlockSize);
-    return true;
-  }
-
-  fs_interface = SquashfsFilesystem::CreateFromFile(path,
-                                                    /*extract_deflates=*/true);
   if (fs_interface) {
     TEST_AND_RETURN_FALSE(fs_interface->GetBlockSize() == kBlockSize);
     return true;
