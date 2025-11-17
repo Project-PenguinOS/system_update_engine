@@ -201,9 +201,6 @@ bool DeltaPerformer::HandleOpResult(bool op_result,
 }
 
 int DeltaPerformer::Close() {
-  // Checkpoint update progress before canceling, so that subsequent attempts
-  // can resume from exactly where update_engine left last time.
-  CheckpointUpdateProgress(true);
   int err = -CloseCurrentPartition();
   LOG_IF(ERROR,
          !payload_hash_calculator_.Finalize() ||
@@ -482,6 +479,7 @@ bool DeltaPerformer::Write(const void* bytes, size_t count, ErrorCode* error) {
         LOG(ERROR) << "Failed to close partition "
                    << partitions_[current_partition_].partition_name() << " "
                    << strerror(-err);
+        *error = ErrorCode::kDownloadWriteError;
         return false;
       }
       // Skip until there are operations for current_partition_.
@@ -1538,7 +1536,7 @@ bool DeltaPerformer::CheckpointUpdateProgress(bool force) {
       partition_writer_->CheckpointUpdateProgress(GetPartitionOperationNum());
     } else {
       CHECK_EQ(next_operation_num_, num_total_operations_)
-          << "Partition writer is null, we are expected to finish all "
+          << " Partition writer is null, we are expected to finish all "
              "operations: "
           << next_operation_num_ << "/" << num_total_operations_;
     }

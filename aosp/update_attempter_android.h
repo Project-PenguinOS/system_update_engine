@@ -147,6 +147,7 @@ class UpdateAttempterAndroid final
   // as in that case it's most likely triggered by `triggerPostinstall`
   // Return `true` iff current action is canceled.
   bool CancelOptionalPostinstall();
+  bool IsOptionalPostinstall(AbstractAction* action);
 
   // Return |true| only if slot switched successfully after an OTA reboot.
   // This will return |false| if an downgrade OTA is applied. Because after a
