@@ -42,6 +42,7 @@
 #include "update_engine/payload_consumer/file_descriptor.h"
 #include "update_engine/payload_consumer/file_descriptor_utils.h"
 #include "update_engine/payload_consumer/xz_extent_writer.h"
+#include "update_engine/payload_consumer/zstd_extent_writer.h"
 #include "update_engine/update_metadata.pb.h"
 
 namespace chromeos_update_engine {
@@ -181,12 +182,15 @@ bool InstallOperationExecutor::ExecuteReplaceOperation(
     const void* data) {
   TEST_AND_RETURN_FALSE(operation.type() == InstallOperation::REPLACE ||
                         operation.type() == InstallOperation::REPLACE_BZ ||
-                        operation.type() == InstallOperation::REPLACE_XZ);
+                        operation.type() == InstallOperation::REPLACE_XZ ||
+                        operation.type() == InstallOperation::REPLACE_ZSTD);
   // Setup the ExtentWriter stack based on the operation type.
   if (operation.type() == InstallOperation::REPLACE_BZ) {
-    writer.reset(new BzipExtentWriter(std::move(writer)));
+    writer = std::make_unique<BzipExtentWriter>(std::move(writer));
   } else if (operation.type() == InstallOperation::REPLACE_XZ) {
-    writer.reset(new XzExtentWriter(std::move(writer)));
+    writer = std::make_unique<XzExtentWriter>(std::move(writer));
+  } else if (operation.type() == InstallOperation::REPLACE_ZSTD) {
+    writer = std::make_unique<ZstdExtentWriter>(std::move(writer));
   }
   TEST_AND_RETURN_FALSE(writer->Init(operation.dst_extents(), block_size_));
   TEST_AND_RETURN_FALSE(writer->Write(data, operation.data_length()));

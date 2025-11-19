@@ -281,6 +281,7 @@ cc_defaults {
         "payload_consumer/verified_source_fd.cc",
         "payload_consumer/verity_writer_android.cc",
         "payload_consumer/xz_extent_writer.cc",
+        "payload_consumer/zstd_extent_writer.cc",
         "payload_consumer/fec_file_descriptor.cc",
         "payload_consumer/partition_update_generator_android.cc",
         "update_status_utils.cc",
@@ -915,6 +916,7 @@ cc_library_static {
         "payload_generator/payload_signer.cc",
         "payload_generator/raw_filesystem.cc",
         "payload_generator/xz_android.cc",
+        "payload_generator/zstd_android.cc",
     ],
 }
 

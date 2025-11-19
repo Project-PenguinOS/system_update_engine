@@ -57,6 +57,7 @@
 #endif  // USE_FEC
 #include "update_engine/payload_consumer/payload_constants.h"
 #include "update_engine/payload_consumer/payload_verifier.h"
+#include "update_engine/payload_consumer/zstd_extent_writer.h"
 
 using google::protobuf::RepeatedPtrField;
 using std::min;
@@ -747,6 +748,7 @@ bool DeltaPerformer::ProcessOperation(const InstallOperation* op,
     case InstallOperation::REPLACE:
     case InstallOperation::REPLACE_BZ:
     case InstallOperation::REPLACE_XZ:
+    case InstallOperation::REPLACE_ZSTD:
       op_result = PerformReplaceOperation(*op);
       OP_DURATION_HISTOGRAM("REPLACE", op_start_time);
       break;
@@ -957,7 +959,8 @@ bool DeltaPerformer::PerformReplaceOperation(
     const InstallOperation& operation) {
   CHECK(operation.type() == InstallOperation::REPLACE ||
         operation.type() == InstallOperation::REPLACE_BZ ||
-        operation.type() == InstallOperation::REPLACE_XZ);
+        operation.type() == InstallOperation::REPLACE_XZ ||
+        operation.type() == InstallOperation::REPLACE_ZSTD);
 
   // Since we delete data off the beginning of the buffer as we use it,
   // the data we need should be exactly at the beginning of the buffer.
