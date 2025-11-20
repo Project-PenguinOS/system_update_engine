@@ -291,7 +291,8 @@ bool PayloadVersion::Validate() const {
                         minor == kVerityMinorPayloadVersion ||
                         minor == kPartialUpdateMinorPayloadVersion ||
                         minor == kZucchiniMinorPayloadVersion ||
-                        minor == kLZ4DIFFMinorPayloadVersion);
+                        minor == kLZ4DIFFMinorPayloadVersion ||
+                        minor == kZstdMinorPayloadVersion);
   return true;
 }
 
@@ -305,7 +306,6 @@ bool PayloadVersion::OperationAllowed(InstallOperation::Type operation) const {
       // These operations are included minor version 3 or newer and full
       // payloads.
       return true;
-
     case InstallOperation::ZERO:
     case InstallOperation::DISCARD:
       // The implementation of these operations had a bug in earlier versions
@@ -328,6 +328,11 @@ bool PayloadVersion::OperationAllowed(InstallOperation::Type operation) const {
     case InstallOperation::LZ4DIFF_BSDIFF:
     case InstallOperation::LZ4DIFF_PUFFDIFF:
       return minor >= kLZ4DIFFMinorPayloadVersion;
+      // We support REPLACE_ZSTD for full OTA if explicitly enabled
+      // in which case minor version is 0 or for replace during incremental
+      // OTA for which we can check the minor version
+    case InstallOperation::REPLACE_ZSTD:
+      return minor == 0 || minor >= kZstdMinorPayloadVersion;
 
     case InstallOperation::MOVE:
     case InstallOperation::BSDIFF:
