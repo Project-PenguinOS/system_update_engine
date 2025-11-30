@@ -47,6 +47,7 @@
 #include "update_engine/common/error_code_utils.h"
 #include "update_engine/common/hardware_interface.h"
 #include "update_engine/common/prefs_interface.h"
+#include "update_engine/common/platform_constants.h"
 #include "update_engine/common/terminator.h"
 #include "update_engine/common/utils.h"
 #include "update_engine/payload_consumer/partition_update_generator_interface.h"
@@ -1485,6 +1486,10 @@ bool DeltaPerformer::ShouldCheckpoint() {
 }
 
 bool DeltaPerformer::CheckpointUpdateProgress(bool force) {
+  // in recovery /data is not mounted so checkpointing will always fail
+  if (constants::kIsRecovery) {
+    return true;
+  }
   if (!force && !ShouldCheckpoint()) {
     return false;
   }
