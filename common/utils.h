@@ -214,7 +214,7 @@ bool SetBlockDeviceReadOnly(const std::string& device, bool read_only);
 // Synchronously mount or unmount a filesystem. Return true on success.
 // When mounting, it will attempt to mount the device as the passed filesystem
 // type |type|, with the passed |flags| options. If |type| is empty, "ext2",
-// "ext3", "ext4" and "squashfs" will be tried.
+// "ext3", and "ext4" will be tried.
 bool MountFilesystem(const std::string& device,
                      const std::string& mountpoint,
                      unsigned long flags,  // NOLINT(runtime/int)

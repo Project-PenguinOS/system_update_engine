@@ -717,7 +717,7 @@ bool MountFilesystem(const string& device,
                      const string& fs_mount_options) {
   vector<const char*> fstypes;
   if (type.empty()) {
-    fstypes = {"ext2", "ext3", "ext4", "squashfs", "erofs"};
+    fstypes = {"ext2", "ext3", "ext4", "erofs"};
   } else {
     fstypes = {type.c_str()};
   }

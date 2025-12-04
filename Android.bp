@@ -914,7 +914,6 @@ cc_library_static {
         "payload_generator/payload_properties.cc",
         "payload_generator/payload_signer.cc",
         "payload_generator/raw_filesystem.cc",
-        "payload_generator/squashfs_filesystem.cc",
         "payload_generator/xz_android.cc",
     ],
 }
@@ -1088,7 +1087,6 @@ filegroup {
         "payload_generator/payload_generation_config_unittest.cc",
         "payload_generator/payload_properties_unittest.cc",
         "payload_generator/payload_signer_unittest.cc",
-        "payload_generator/squashfs_filesystem_unittest.cc",
         "payload_generator/zip_unittest.cc",
         "payload_consumer/verity_writer_android_unittest.cc",
         "payload_consumer/xz_extent_writer_unittest.cc",
@@ -1456,9 +1454,6 @@ cc_binary_host {
         "libgflags",
         "libsparse",
         "update_metadata-protos",
-    ],
-    required: [
-        "unsquashfs",
     ],
 }
 
