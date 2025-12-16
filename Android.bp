@@ -772,6 +772,7 @@ cc_defaults {
         "libcow_size_estimator",
         "liberofs",
         "libselinux",
+        "libcutils",
         "lz4diff-protos",
         "liblz4diff",
         "libzstd",
