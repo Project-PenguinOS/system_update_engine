@@ -458,6 +458,10 @@ DEFINE_bool(enable_replace_zstd,
             false,
             "Whether to use zstd for REPLACE operations.");
 
+DEFINE_bool(disable_replace_compression,
+            false,
+            "Whether to disable compression for REPLACE operations.");
+
 DEFINE_string(erofs_compression_param,
               "",
               "Compression parameter passed to mkfs.erofs's -z option. "
@@ -622,6 +626,8 @@ int Main(int argc, char** argv) {
   payload_config.enable_zucchini = FLAGS_enable_zucchini;
   payload_config.enable_puffdiff = FLAGS_enable_puffdiff;
   payload_config.enable_replace_zstd = FLAGS_enable_replace_zstd;
+  payload_config.disable_replace_compression =
+      FLAGS_disable_replace_compression;
 
   payload_config.ParseCompressorTypes(FLAGS_compressor_types);
 
