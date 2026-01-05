@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -263,6 +264,8 @@ class UpdateAttempterAndroid final
   // TimeTicks to ensure that notifications are sent even if the system clock is
   // set back in the middle of an update.
   base::TimeTicks last_notify_time_;
+
+  std::chrono::steady_clock::time_point current_phase_start_time_;
 
   // The processor for running Actions.
   std::unique_ptr<ActionProcessor> processor_;

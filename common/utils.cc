@@ -435,6 +435,25 @@ bool DeleteDirectory(const char* dirname) {
   return true;
 }
 
+bool Fsync(const char* path) {
+  android::base::unique_fd fd(
+      TEMP_FAILURE_RETRY(open(path, O_RDONLY | O_CLOEXEC)));
+  if (fd == -1) {
+    PLOG(ERROR) << "Failed to open " << path;
+    return false;
+  }
+  if (fsync(fd) == -1) {
+    if (errno == EROFS || errno == EINVAL) {
+      PLOG(WARNING) << "Skip fsync " << path
+                    << " on a file system does not support synchronization";
+    } else {
+      PLOG(ERROR) << "Failed to fsync " << path;
+      return false;
+    }
+  }
+  return true;
+}
+
 bool FsyncDirectoryContents(const char* dirname) {
   std::filesystem::path dir_path(dirname);
 
@@ -447,18 +466,7 @@ bool FsyncDirectoryContents(const char* dirname) {
 
   for (const auto& entry : std::filesystem::directory_iterator(dirname, ec)) {
     if (entry.is_regular_file()) {
-      int fd = open(entry.path().c_str(), O_RDONLY | O_CLOEXEC);
-      if (fd == -1) {
-        LOG(ERROR) << "open failed: " << entry.path();
-        return false;
-      }
-
-      if (fsync(fd) == -1) {
-        LOG(ERROR) << "fsync failed";
-        return false;
-      }
-
-      close(fd);
+      Fsync(entry.path().c_str());
     }
   }
 
@@ -470,22 +478,7 @@ bool FsyncDirectory(const char* dirname) {
     LOG(ERROR) << "failed to fsync directory contents";
     return false;
   }
-  android::base::unique_fd fd(
-      TEMP_FAILURE_RETRY(open(dirname, O_RDONLY | O_CLOEXEC)));
-  if (fd == -1) {
-    PLOG(ERROR) << "Failed to open " << dirname;
-    return false;
-  }
-  if (fsync(fd) == -1) {
-    if (errno == EROFS || errno == EINVAL) {
-      PLOG(WARNING) << "Skip fsync " << dirname
-                    << " on a file system does not support synchronization";
-    } else {
-      PLOG(ERROR) << "Failed to fsync " << dirname;
-      return false;
-    }
-  }
-  return true;
+  return Fsync(dirname);
 }
 
 bool WriteStringToFileAtomic(const std::string& path,
@@ -513,7 +506,7 @@ bool WriteStringToFileAtomic(const std::string& path,
     PLOG(ERROR) << "rename failed from " << tmp_path << " to " << path;
     return false;
   }
-  return FsyncDirectory(std::filesystem::path(path).parent_path().c_str());
+  return Fsync(std::filesystem::path(path).parent_path().c_str());
 }
 
 void HexDumpArray(const uint8_t* const arr, const size_t length) {

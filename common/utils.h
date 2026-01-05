@@ -162,6 +162,7 @@ off64_t FileSize(int fd);
 
 bool SendFile(int out_fd, int in_fd, size_t count);
 
+bool Fsync(const char* path);
 bool FsyncDirectoryContents(const char* dirname);
 bool FsyncDirectory(const char* dirname);
 bool DeleteDirectory(const char* dirname);

@@ -47,6 +47,7 @@
 #include "update_engine/common/error_code_utils.h"
 #include "update_engine/common/hardware_interface.h"
 #include "update_engine/common/prefs_interface.h"
+#include "update_engine/common/platform_constants.h"
 #include "update_engine/common/terminator.h"
 #include "update_engine/common/utils.h"
 #include "update_engine/payload_consumer/partition_update_generator_interface.h"
@@ -57,6 +58,7 @@
 #endif  // USE_FEC
 #include "update_engine/payload_consumer/payload_constants.h"
 #include "update_engine/payload_consumer/payload_verifier.h"
+#include "update_engine/payload_consumer/zstd_extent_writer.h"
 
 using google::protobuf::RepeatedPtrField;
 using std::min;
@@ -747,6 +749,7 @@ bool DeltaPerformer::ProcessOperation(const InstallOperation* op,
     case InstallOperation::REPLACE:
     case InstallOperation::REPLACE_BZ:
     case InstallOperation::REPLACE_XZ:
+    case InstallOperation::REPLACE_ZSTD:
       op_result = PerformReplaceOperation(*op);
       OP_DURATION_HISTOGRAM("REPLACE", op_start_time);
       break;
@@ -957,7 +960,8 @@ bool DeltaPerformer::PerformReplaceOperation(
     const InstallOperation& operation) {
   CHECK(operation.type() == InstallOperation::REPLACE ||
         operation.type() == InstallOperation::REPLACE_BZ ||
-        operation.type() == InstallOperation::REPLACE_XZ);
+        operation.type() == InstallOperation::REPLACE_XZ ||
+        operation.type() == InstallOperation::REPLACE_ZSTD);
 
   // Since we delete data off the beginning of the buffer as we use it,
   // the data we need should be exactly at the beginning of the buffer.
@@ -1482,6 +1486,10 @@ bool DeltaPerformer::ShouldCheckpoint() {
 }
 
 bool DeltaPerformer::CheckpointUpdateProgress(bool force) {
+  // in recovery /data is not mounted so checkpointing will always fail
+  if (constants::kIsRecovery) {
+    return true;
+  }
   if (!force && !ShouldCheckpoint()) {
     return false;
   }

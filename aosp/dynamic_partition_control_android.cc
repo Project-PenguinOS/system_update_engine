@@ -82,8 +82,6 @@ constexpr char kVirtualAbCompressionEnabled[] =
     "ro.virtual_ab.compression.enabled";
 constexpr auto&& kVirtualAbCompressionXorEnabled =
     "ro.virtual_ab.compression.xor.enabled";
-constexpr char kVirtualAbUserspaceSnapshotsEnabled[] =
-    "ro.virtual_ab.userspace.snapshots.enabled";
 
 // Currently, android doesn't have a retrofit prop for VAB Compression. However,
 // struct FeatureFlag forces us to determine if a feature is 'retrofit'. So this
@@ -134,8 +132,6 @@ DynamicPartitionControlAndroid::DynamicPartitionControlAndroid(
                                              kVirtualAbCompressionRetrofit)),
       virtual_ab_compression_xor_(
           GetFeatureFlag(kVirtualAbCompressionXorEnabled, "")),
-      virtual_ab_userspace_snapshots_(
-          GetFeatureFlag(kVirtualAbUserspaceSnapshotsEnabled, nullptr)),
       source_slot_(source_slot) {
   if (GetVirtualAbFeatureFlag().IsEnabled()) {
     snapshot_ = SnapshotManager::New();
@@ -215,7 +211,8 @@ bool DynamicPartitionControlAndroid::MapPartitionInternal(
       .device_name = device_name};
   bool success = false;
   if (GetVirtualAbFeatureFlag().IsEnabled() && target_supports_snapshot_ &&
-      slot != source_slot_ && force_writable && ExpectMetadataMounted()) {
+      slot != source_slot_ && force_writable && ExpectMetadataMounted() &&
+      !recovery_fallback_to_direct_update_) {
     // Only target partitions are mapped with force_writable. On Virtual
     // A/B devices, target partitions may overlap with source partitions, so
     // they must be mapped with snapshot.
@@ -575,6 +572,8 @@ bool DynamicPartitionControlAndroid::PreparePartitionsForUpdate(
       LOG(INFO) << "Skip canceling previous update because metadata is not "
                 << "mounted";
     }
+
+    recovery_fallback_to_direct_update_ = true;
   }
 
   // TODO(xunchang) support partial update on non VAB enabled devices.
@@ -1507,11 +1506,6 @@ bool DynamicPartitionControlAndroid::IsDynamicPartition(
 bool DynamicPartitionControlAndroid::UpdateUsesSnapshotCompression() {
   return GetVirtualAbFeatureFlag().IsEnabled() &&
          GetSnapshotManager()->UpdateUsesSnapuserd();
-}
-
-FeatureFlag
-DynamicPartitionControlAndroid::GetVirtualAbUserspaceSnapshotsFeatureFlag() {
-  return virtual_ab_userspace_snapshots_;
 }
 
 }  // namespace chromeos_update_engine

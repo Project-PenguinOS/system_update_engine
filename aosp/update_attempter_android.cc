@@ -17,6 +17,7 @@
 #include "update_engine/aosp/update_attempter_android.h"
 
 #include <algorithm>
+#include <chrono>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -924,6 +925,34 @@ void UpdateAttempterAndroid::TerminateUpdateAndNotify(ErrorCode error_code) {
 }
 
 void UpdateAttempterAndroid::SetStatusAndNotify(UpdateStatus status) {
+  if (status_ == UpdateStatus::DOWNLOADING &&
+      status != UpdateStatus::DOWNLOADING) {
+    auto duration =
+        std::chrono::steady_clock::now() - current_phase_start_time_;
+    metrics_utils::SetInstallDuration(
+        metrics_utils::GetPersistedValue(kPrefsMetricsInstallDuration, prefs_) +
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                .count(),
+        prefs_);
+  }
+  if (status_ == UpdateStatus::VERIFYING && status != UpdateStatus::VERIFYING) {
+    auto duration =
+        std::chrono::steady_clock::now() - current_phase_start_time_;
+    metrics_utils::SetVerificationDuration(
+        metrics_utils::GetPersistedValue(kPrefsMetricsVerifyingDuration,
+                                         prefs_) +
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                .count(),
+        prefs_);
+  }
+
+  if (status != status_) {
+    if (status == UpdateStatus::DOWNLOADING ||
+        status == UpdateStatus::VERIFYING) {
+      current_phase_start_time_ = std::chrono::steady_clock::now();
+    }
+  }
+
   status_ = status;
   size_t payload_size =
       install_plan_.payloads.empty() ? 0 : install_plan_.payloads[0].size;

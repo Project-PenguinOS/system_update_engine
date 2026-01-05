@@ -31,6 +31,7 @@
 #endif
 
 #include "update_engine/common/utils.h"
+#include "update_engine/metrics_utils.h"
 #include "update_engine/payload_consumer/delta_performer.h"
 
 using android::base::GetBoolProperty;
@@ -525,16 +526,18 @@ void CleanupPreviousUpdateAction::ReportMergeStats() {
   // DynamicPartitionControlInterface::UpdateUsesSnapshotCompression.
   // However, we have saved the flag in the snapshot report.
   bool vab_compression_used = report.compression_enabled();
-  bool userspace_snapshots_enabled =
-      boot_control_->GetDynamicPartitionControl()
-          ->GetVirtualAbUserspaceSnapshotsFeatureFlag()
-          .IsEnabled();
+  constexpr bool userspace_snapshots_enabled = true;
   bool userspace_snapshots_used = report.userspace_snapshots_used();
   bool xor_compression_enabled = boot_control_->GetDynamicPartitionControl()
                                      ->GetVirtualAbCompressionXorFeatureFlag()
                                      .IsEnabled();
   bool xor_compression_used = report.xor_compression_used();
   bool iouring_used = report.iouring_used();
+  bool ublk_used = report.ublk_used();
+  int64_t install_time_ms =
+      metrics_utils::GetPersistedValue(kPrefsMetricsInstallDuration, prefs_);
+  int64_t verification_time_ms =
+      metrics_utils::GetPersistedValue(kPrefsMetricsVerifyingDuration, prefs_);
 
   auto target_build_fingerprint =
       android::base::GetProperty("ro.build.fingerprint", "");
@@ -543,7 +546,10 @@ void CleanupPreviousUpdateAction::ReportMergeStats() {
             << android::snapshot::UpdateState_Name(report.state()) << " in "
             << passed_ms.count() << "ms (resumed " << report.resume_count()
             << " times), using " << report.cow_file_size()
-            << " bytes of COW image.";
+            << " bytes of COW image, ublk_used=" << ublk_used
+            << ", install_time_ms=" << install_time_ms
+            << ", verification_time_ms=" << verification_time_ms;
+
   statsd::stats_write(statsd::SNAPSHOT_MERGE_REPORTED,
                       static_cast<int32_t>(report.state()),
                       static_cast<int64_t>(passed_ms.count()),
@@ -563,7 +569,12 @@ void CleanupPreviousUpdateAction::ReportMergeStats() {
                       userspace_snapshots_used,
                       xor_compression_enabled,
                       xor_compression_used,
-                      iouring_used);
+                      iouring_used,
+                      ublk_used,
+                      install_time_ms,
+                      verification_time_ms);
+  prefs_->Delete(kPrefsMetricsInstallDuration);
+  prefs_->Delete(kPrefsMetricsVerifyingDuration);
 #endif
 }
 
