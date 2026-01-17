@@ -1391,6 +1391,7 @@ bool UpdateAttempterAndroid::IsOptionalPostinstall(AbstractAction* action) {
     return false;
   }
   if (action->Type() != PostinstallRunnerAction::StaticType()) {
+    LOG(INFO) << "Currently running " << action->Type() << ", not cancellable";
     return false;
   }
   auto postinstall_action = static_cast<PostinstallRunnerAction*>(action);
@@ -1399,12 +1400,17 @@ bool UpdateAttempterAndroid::IsOptionalPostinstall(AbstractAction* action) {
   if (!prefs_->GetBoolean(kPrefsPostInstallSucceeded, &postinstall_succeeded)) {
     return false;
   }
+  if (!postinstall_succeeded) {
+    LOG(INFO)
+        << "Postinstall did not complete successfully before, this looks like "
+           "the first time we are running postinstall action, not cancellable.";
+    return false;
+  }
   // Normal OTA updates contain more than 1 partition, if it only contains 1
   // partition, and we have previously ran postinstall action.
   // It's most likely triggered by `triggerPostinstall`, we can safely
   // cancel it.
-  return install_plan.partitions.size() == 1 && install_plan.run_post_install &&
-         postinstall_succeeded;
+  return install_plan.partitions.size() == 1 && install_plan.run_post_install;
 }
 
 bool UpdateAttempterAndroid::CancelOptionalPostinstall() {
@@ -1633,6 +1639,7 @@ bool UpdateAttempterAndroid::TriggerPostinstall(const std::string& partition,
         "before calling TriggerPostinstall",
         ErrorCode::kPostinstallRunnerError);
   }
+  LOG(INFO) << "TriggerPostinstall(" << partition << ")";
 
   InstallPlan install_plan;
   install_plan.source_slot = GetCurrentSlot();
@@ -1682,6 +1689,9 @@ bool UpdateAttempterAndroid::TriggerPostinstall(const std::string& partition,
                           __FILE__,
                           "Partition " + partition + " not found",
                           ErrorCode::kDownloadStateInitializationError);
+  }
+  if (partitions.size() > 1) {
+    LOG(WARNING) << "There are more than 1 partition with name " << partition;
   }
   // We only want to trigger postinstall for a specific partition,
   // and since we already checked partitions array is non-empty, reading just
