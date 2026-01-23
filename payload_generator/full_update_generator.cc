@@ -49,14 +49,16 @@ class ChunkProcessor : public base::DelegateSimpleThread::Delegate {
                  size_t size,
                  BlobFileWriter* blob_file,
                  AnnotatedOperation* aop,
-                 bool enable_replace_zstd)
+                 bool enable_replace_zstd,
+                 bool disable_replace_compression)
       : version_(version),
         fd_(fd),
         offset_(offset),
         size_(size),
         blob_file_(blob_file),
         aop_(aop),
-        enable_replace_zstd_(enable_replace_zstd) {}
+        enable_replace_zstd_(enable_replace_zstd),
+        disable_replace_compression_(disable_replace_compression) {}
   // We use a default move constructor since all the data members are POD types.
   ChunkProcessor(ChunkProcessor&&) = default;
   ~ChunkProcessor() override = default;
@@ -79,6 +81,7 @@ class ChunkProcessor : public base::DelegateSimpleThread::Delegate {
   BlobFileWriter* blob_file_;
   AnnotatedOperation* aop_;
   bool enable_replace_zstd_;
+  bool disable_replace_compression_;
 
   DISALLOW_COPY_AND_ASSIGN(ChunkProcessor);
 };
@@ -99,8 +102,13 @@ bool ChunkProcessor::ProcessChunk() {
   TEST_AND_RETURN_FALSE(bytes_read == static_cast<ssize_t>(size_));
 
   InstallOperation::Type op_type{};
-  TEST_AND_RETURN_FALSE(diff_utils::GenerateBestFullOperation(
-      buffer_in_, version_, &op_blob, &op_type, enable_replace_zstd_));
+  TEST_AND_RETURN_FALSE(
+      diff_utils::GenerateBestFullOperation(buffer_in_,
+                                            version_,
+                                            &op_blob,
+                                            &op_type,
+                                            enable_replace_zstd_,
+                                            disable_replace_compression_));
 
   aop_->op.set_type(op_type);
   TEST_AND_RETURN_FALSE(aop_->SetOperationBlob(op_blob, blob_file_));
@@ -176,7 +184,8 @@ bool FullUpdateGenerator::GenerateOperations(
         num_blocks * config.block_size,
         blob_file,
         aop,
-        config.enable_replace_zstd);
+        config.enable_replace_zstd,
+        config.disable_replace_compression);
   }
 
   // Thread pool used for worker threads.
