@@ -1458,14 +1458,14 @@ bool DeltaPerformer::ResetUpdateProgress(
   TEST_AND_RETURN_FALSE(prefs->SetInt64(kPrefsUpdateStateNextOperation,
                                         kUpdateStateOperationInvalid));
   if (!quick) {
-    prefs->SetInt64(kPrefsUpdateStateNextDataOffset, -1);
-    prefs->SetInt64(kPrefsUpdateStateNextDataLength, 0);
-    prefs->SetString(kPrefsUpdateStateSHA256Context, "");
-    prefs->SetString(kPrefsUpdateStateSignedSHA256Context, "");
-    prefs->SetString(kPrefsUpdateStateSignatureBlob, "");
-    prefs->SetInt64(kPrefsManifestMetadataSize, -1);
-    prefs->SetInt64(kPrefsManifestSignatureSize, -1);
-    prefs->SetInt64(kPrefsResumedUpdateFailures, 0);
+    prefs->Delete(kPrefsUpdateStateNextDataOffset);
+    prefs->Delete(kPrefsUpdateStateNextDataLength);
+    prefs->Delete(kPrefsUpdateStateSHA256Context);
+    prefs->Delete(kPrefsUpdateStateSignedSHA256Context);
+    prefs->Delete(kPrefsUpdateStateSignatureBlob);
+    prefs->Delete(kPrefsManifestMetadataSize);
+    prefs->Delete(kPrefsManifestSignatureSize);
+    prefs->Delete(kPrefsResumedUpdateFailures);
     prefs->Delete(kPrefsPostInstallSucceeded);
     prefs->Delete(kPrefsVerityWritten);
     if (!skip_dynamic_partititon_metadata_updated) {
