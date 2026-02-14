@@ -20,12 +20,12 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstring>
 #include <memory>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+#include <iterator>
 
 #include <android-base/properties.h>
 #include <android-base/strings.h>
@@ -785,8 +785,8 @@ bool DeltaPerformer::IsManifestValid() {
 }
 
 bool DeltaPerformer::ParseManifestPartitions(ErrorCode* error) {
-  partitions_.assign(manifest_.partitions().begin(),
-                     manifest_.partitions().end());
+  partitions_.assign(std::make_move_iterator(manifest_.partitions().begin()),
+                     std::make_move_iterator(manifest_.partitions().end()));
 
   // For VAB and partial updates, the partition preparation will copy the
   // dynamic partitions metadata to the target metadata slot, and rename the
@@ -807,6 +807,12 @@ bool DeltaPerformer::ParseManifestPartitions(ErrorCode* error) {
 
   // Partitions in manifest are no longer needed after preparing partitions.
   manifest_.clear_partitions();
+  // Protobuf doesn't automatically free memory used by RepeatedPtrField
+  // There's no shrink_to_fit() in protobuf, so we use swap to actually
+  // release memory
+  RepeatedPtrField<chromeos_update_engine::PartitionUpdate> empty;
+  manifest_.mutable_partitions()->Swap(&empty);
+
   // TODO(xunchang) TBD: allow partial update only on devices with dynamic
   // partition.
   if (manifest_.partial_update()) {
